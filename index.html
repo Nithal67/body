@@ -174,7 +174,6 @@
 
     <section id="entrainement">
       <h2>Programme d'entraînement</h2>
-      <div id="uncompleted"></div>
       <div id="workout"></div>
     </section>
 
@@ -221,7 +220,26 @@
     const modalContent = document.getElementById('modal-content');
     let currentDay = "";
 
-    function renderWorkout() { /* même logique que précédemment */ }
+    function renderWorkout() {
+  const workout = document.getElementById("workout");
+  workout.innerHTML = "";
+  for (let day in plan) {
+    const div = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = day;
+    div.appendChild(title);
+
+    const ul = document.createElement("ul");
+    plan[day].forEach(ex => {
+      const li = document.createElement("li");
+      li.textContent = ex;
+      ul.appendChild(li);
+    });
+
+    div.appendChild(ul);
+    workout.appendChild(div);
+  }
+}
 
     function renderTracker() {
       const tracker = document.getElementById("tracker");
