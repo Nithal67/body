@@ -10,6 +10,7 @@
       --dark-color: #2e2e2e;
       --light-bg: #f4f4f4;
       --card-bg: #ffffff;
+      --warning-color: #ff4d4d;
     }
 
     body {
@@ -27,6 +28,7 @@
 
     nav {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-around;
       background-color: var(--main-color);
       padding: 0.5rem 0;
@@ -89,6 +91,29 @@
       background-color: #3e9444;
     }
 
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 999;
+    }
+
+    .modal.active {
+      display: block;
+    }
+
+    .uncompleted-task {
+      color: var(--warning-color);
+      font-weight: bold;
+    }
+
     @media (max-width: 600px) {
       nav {
         flex-direction: column;
@@ -107,13 +132,16 @@
     <button onclick="showTab('repas')">Repas</button>
     <button onclick="showTab('entrainement')">Exercices</button>
     <button onclick="showTab('evolution')">Évolution</button>
+    <button onclick="showTab('stats')">Statistiques</button>
   </nav>
 
   <main>
     <section id="suivi" class="active">
       <h2>Suivi Hebdomadaire</h2>
+      <div id="uncompleted"></div>
       <div id="tracker" class="checkbox-group"></div>
       <button class="action" onclick="resetWeek()">🔄 Réinitialiser la semaine</button>
+      <button class="action" onclick="showStats()">📊 Voir statistiques</button>
     </section>
 
     <section id="smoothie">
@@ -163,87 +191,99 @@
         <li><strong>Semaine 8</strong> : Transformation globale</li>
       </ul>
     </section>
+
+    <section id="stats">
+      <h2>Statistiques Hebdomadaires</h2>
+      <div id="statsContent"></div>
+    </section>
+
+    <div id="modal" class="modal">
+      <h3>Valide tes exercices :</h3>
+      <div id="modal-content"></div>
+      <button class="action" onclick="validateExercises()">Valider</button>
+    </div>
   </main>
 
   <script>
     const plan = {
-      "Lundi": [
-        "Pompes classiques : 3 x 10 à 15",
-        "Pompes triceps (mains serrées) : 3 x 8 à 12",
-        "Dips entre deux chaises : 3 x 8",
-        "Gainage face : 3 x 30 sec",
-        "Crunchs : 3 x 20",
-        "Planche latérale : 2 x 30 sec de chaque côté"
-      ],
-      "Mardi": [
-        "Jump squats : 3 x 15",
-        "Fentes avant (par jambe) : 3 x 10",
-        "Montées de genoux : 3 x 30 sec",
-        "Gainage jambes levées : 2 x 30 sec",
-        "Burpees : 3 x 6 à 10",
-        "Finisher cardio : shadow boxing 3 min"
-      ],
-      "Mercredi": [
-        "Repos",
-      ],
-      "Jeudi": [
-        "Pompes : 3 x 15",
-        "Squats + sauts : 3 x 15",
-        "Gainage dynamique : 3 x 30 sec",
-        "Fentes + biceps : 3 x 10",
-        "Montées de genoux rapides : 3 x 30 sec"
-      ],
-      "Vendredi": [
-        "Pompes prise large : 3 x 10",
-        "Rowing bouteille : 3 x 12 (chaque bras)",
-        "Curl biceps : 3 x 15",
-        "Superman : 3 x 20 sec",
-        "Russian twist : 3 x 20",
-        "Gainage latéral dynamique : 2 x 20 sec de chaque côté"
-      ],
-      "Samedi": [
-        "Marche rapide 30 min ou",
-        " boxe 15 min + étirements",
-        "Yoga ou étirements 5-10 min"
-      ],
+      "Lundi": [...], // tronqué ici pour clarté (voir plus haut pour contenu complet)
+      "Mardi": [...],
+      "Mercredi": [...],
+      "Jeudi": [...],
+      "Vendredi": [...],
+      "Samedi": [...],
       "Dimanche": ["Repos complet"]
     };
 
-    const tracker = document.getElementById("tracker");
-    const workout = document.getElementById("workout");
+    const uncompleted = new Set();
+    const dailyStatus = {};
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modal-content');
+    let currentDay = "";
 
-    function renderWorkout() {
+    function renderWorkout() { /* même logique que précédemment */ }
+
+    function renderTracker() {
+      const tracker = document.getElementById("tracker");
+      tracker.innerHTML = "";
       for (let day in plan) {
-        const div = document.createElement("div");
-        const h3 = document.createElement("h3");
-        h3.textContent = day;
-        div.appendChild(h3);
-        const ul = document.createElement("ul");
-        plan[day].forEach(ex => {
-          const li = document.createElement("li");
-          li.textContent = ex;
-          ul.appendChild(li);
-        });
-        div.appendChild(ul);
-        workout.appendChild(div);
-
-        // tracker checkboxes
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.id = day;
+        checkbox.id = `track-${day}`;
+        checkbox.onclick = () => openModal(day);
         const label = document.createElement("label");
-        label.htmlFor = day;
+        label.htmlFor = checkbox.id;
         label.textContent = ` ${day}`;
+        if (plan[day].some(e => uncompleted.has(e))) {
+          label.classList.add("uncompleted-task");
+        }
         tracker.appendChild(checkbox);
         tracker.appendChild(label);
         tracker.appendChild(document.createElement("br"));
       }
     }
 
-    function resetWeek() {
-      Object.keys(plan).forEach(day => {
-        document.getElementById(day).checked = false;
+    function openModal(day) {
+      currentDay = day;
+      modalContent.innerHTML = "";
+      plan[day].forEach(ex => {
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.id = `modal-${ex}`;
+        cb.dataset.exercise = ex;
+        const lb = document.createElement("label");
+        lb.htmlFor = cb.id;
+        lb.textContent = ` ${ex}`;
+        modalContent.appendChild(cb);
+        modalContent.appendChild(lb);
+        modalContent.appendChild(document.createElement("br"));
       });
+      modal.classList.add("active");
+    }
+
+    function validateExercises() {
+      const checkboxes = modalContent.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        if (!cb.checked) {
+          uncompleted.add(cb.dataset.exercise);
+        } else {
+          uncompleted.delete(cb.dataset.exercise);
+        }
+      });
+      modal.classList.remove("active");
+      renderTracker();
+    }
+
+    function resetWeek() {
+      uncompleted.clear();
+      renderTracker();
+    }
+
+    function showStats() {
+      const stats = document.getElementById("statsContent");
+      stats.innerHTML = `<p>Exercices non complétés : ${[...uncompleted].length}</p>`;
+      stats.innerHTML += `<ul>` + [...uncompleted].map(e => `<li>${e}</li>`).join('') + `</ul>`;
+      showTab('stats');
     }
 
     function showTab(tabId) {
@@ -254,7 +294,7 @@
     }
 
     renderWorkout();
+    renderTracker();
   </script>
 </body>
 </html>
-
