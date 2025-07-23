@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prise de Masse - Suivi</title>
+  <style>
+    :root {
+      --main-color: #4CAF50;
+      --dark-color: #2e2e2e;
+      --light-bg: #f4f4f4;
+      --card-bg: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--light-bg);
+    }
+
+    header {
+      background-color: var(--dark-color);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background-color: var(--main-color);
+      padding: 0.5rem 0;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    nav button:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      padding: 1rem;
+    }
+
+    section {
+      display: none;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    h2 {
+      color: var(--main-color);
+      margin-bottom: 0.8rem;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    button.action {
+      background-color: var(--main-color);
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    button.action:hover {
+      background-color: #3e9444;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Plan Prise de Masse</h1>
+  </header>
+
+  <nav>
+    <button onclick="showTab('suivi')">Suivi</button>
+    <button onclick="showTab('smoothie')">Smoothie</button>
+    <button onclick="showTab('repas')">Repas</button>
+    <button onclick="showTab('entrainement')">Exercices</button>
+    <button onclick="showTab('evolution')">Évolution</button>
+  </nav>
+
+  <main>
+    <section id="suivi" class="active">
+      <h2>Suivi Hebdomadaire</h2>
+      <div id="tracker" class="checkbox-group"></div>
+      <button class="action" onclick="resetWeek()">🔄 Réinitialiser la semaine</button>
+    </section>
+
+    <section id="smoothie">
+      <h2>Recette Smoothie</h2>
+      <p>
+        - 250 ml de lait entier ou végétal<br>
+        - 100 g de fromage blanc ou 1 yaourt nature<br>
+        - 40 g de flocons d'avoine<br>
+        - 100 g de fruits (poire, mangue, fruits rouges)<br>
+        - 1 c. à soupe de miel ou confiture<br>
+        - 1 c. à soupe d'huile neutre (colza, olive, coco)<br>
+        - (Optionnel : carré de chocolat noir fondu)
+      </p>
+    </section>
+
+    <section id="repas">
+      <h2>Plan Repas</h2>
+      <strong>À privilégier :</strong>
+      <ul>
+        <li>Œufs, poulet, fromage blanc, lentilles</li>
+        <li>Riz complet, patates douces, flocons d'avoine</li>
+        <li>Huile d'olive, noix, avocat</li>
+        <li>Fruits secs, smoothies, pain complet + fromage</li>
+      </ul>
+      <strong>À éviter :</strong>
+      <ul>
+        <li>Sodas, plats industriels, fast food, sucre raffiné</li>
+        <li>Sauter des repas</li>
+      </ul>
+    </section>
+
+    <section id="entrainement">
+      <h2>Programme d'entraînement</h2>
+      <div id="workout"></div>
+    </section>
+
+    <section id="evolution">
+      <h2>Évolution Corporelle (8 semaines)</h2>
+      <ul>
+        <li><strong>Semaine 1</strong> : Réveil musculaire, +0,5 kg</li>
+        <li><strong>Semaine 2</strong> : Endurance + abdos un peu visibles</li>
+        <li><strong>Semaine 3</strong> : Bras et pecs visibles</li>
+        <li><strong>Semaine 4</strong> : Corps plus rempli, +2-3 kg</li>
+        <li><strong>Semaine 5</strong> : Silhouette plus large</li>
+        <li><strong>Semaine 6</strong> : Pecs visibles au repos</li>
+        <li><strong>Semaine 7</strong> : Ventre plat, posture meilleure</li>
+        <li><strong>Semaine 8</strong> : Transformation globale</li>
+      </ul>
+    </section>
+  </main>
+
+  <script>
+    const plan = {
+      "Lundi": [
+        "Pompes classiques : 3 x 10 à 15",
+        "Pompes triceps (mains serrées) : 3 x 8 à 12",
+        "Dips entre deux chaises : 3 x 8",
+        "Gainage face : 3 x 30 sec",
+        "Crunchs : 3 x 20",
+        "Planche latérale : 2 x 30 sec de chaque côté"
+      ],
+      "Mardi": [
+        "Jump squats : 3 x 15",
+        "Fentes avant (par jambe) : 3 x 10",
+        "Montées de genoux : 3 x 30 sec",
+        "Gainage jambes levées : 2 x 30 sec",
+        "Burpees : 3 x 6 à 10",
+        "Finisher cardio : shadow boxing 3 min"
+      ],
+      "Mercredi": [
+        "Repos",
+      ],
+      "Jeudi": [
+        "Pompes : 3 x 15",
+        "Squats + sauts : 3 x 15",
+        "Gainage dynamique : 3 x 30 sec",
+        "Fentes + biceps : 3 x 10",
+        "Montées de genoux rapides : 3 x 30 sec"
+      ],
+      "Vendredi": [
+        "Pompes prise large : 3 x 10",
+        "Rowing bouteille : 3 x 12 (chaque bras)",
+        "Curl biceps : 3 x 15",
+        "Superman : 3 x 20 sec",
+        "Russian twist : 3 x 20",
+        "Gainage latéral dynamique : 2 x 20 sec de chaque côté"
+      ],
+      "Samedi": [
+        "Marche rapide 30 min ou",
+        " boxe 15 min + étirements",
+        "Yoga ou étirements 5-10 min"
+      ],
+      "Dimanche": ["Repos complet"]
+    };
+
+    const tracker = document.getElementById("tracker");
+    const workout = document.getElementById("workout");
+
+    function renderWorkout() {
+      for (let day in plan) {
+        const div = document.createElement("div");
+        const h3 = document.createElement("h3");
+        h3.textContent = day;
+        div.appendChild(h3);
+        const ul = document.createElement("ul");
+        plan[day].forEach(ex => {
+          const li = document.createElement("li");
+          li.textContent = ex;
+          ul.appendChild(li);
+        });
+        div.appendChild(ul);
+        workout.appendChild(div);
+
+        // tracker checkboxes
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = day;
+        const label = document.createElement("label");
+        label.htmlFor = day;
+        label.textContent = ` ${day}`;
+        tracker.appendChild(checkbox);
+        tracker.appendChild(label);
+        tracker.appendChild(document.createElement("br"));
+      }
+    }
+
+    function resetWeek() {
+      Object.keys(plan).forEach(day => {
+        document.getElementById(day).checked = false;
+      });
+    }
+
+    function showTab(tabId) {
+      document.querySelectorAll('section').forEach(sec => {
+        sec.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    renderWorkout();
+  </script>
+</body>
+</html>
+
